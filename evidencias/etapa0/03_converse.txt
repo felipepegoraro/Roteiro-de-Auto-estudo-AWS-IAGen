@@ -1,0 +1,26 @@
+$ aws bedrock-runtime converse --model-id amazon.nova-micro-v1:0 ...
+{
+    "output": {
+        "message": {
+            "role": "assistant",
+            "content": [
+                {
+                    "text": "IaaS (Infrastructure as a Service) é um modelo de gestão de recursos de nuvem que oferece a capacidade de criar, gerenciar e operar um ambiente de computação em segundo plano, sem a necessidade de uma infraestrutura física específica."
+                }
+            ]
+        }
+    },
+    "stopReason": "end_turn",
+    "usage": {
+        "inputTokens": 35,
+        "outputTokens": 58,
+        "totalTokens": 93
+    },
+    "metrics": {
+        "latencyMs": 8504
+    }
+}
+
+real	0m9,215s
+user	0m0,631s
+sys	0m0,064s

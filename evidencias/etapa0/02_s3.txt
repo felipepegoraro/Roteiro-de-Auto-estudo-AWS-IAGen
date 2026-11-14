@@ -1,0 +1,3 @@
+$ aws s3 mb s3://teste-floci
+make_bucket: teste-floci
+2026-11-14 12:16:58 teste-floci
