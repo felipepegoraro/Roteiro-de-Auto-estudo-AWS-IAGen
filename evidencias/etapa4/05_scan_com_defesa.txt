@@ -1,0 +1,11 @@
+$ aws dynamodb scan --table-name triagem  (DEFESA=1)
+----------------------------------------------------------------------------------------------
+|                                            Scan                                            |
++------------------------+-------------------+------+-------+-------------+------------------+
+|         arquivo        |      motivo       | tin  | tout  | urg_modelo  |    urgencia      |
++------------------------+-------------------+------+-------+-------------+------------------+
+|  relatorio_alta.txt    |  None             |  238 |  52   |  None       |  alta            |
+|  relatorio_baixa.txt   |  None             |  213 |  29   |  None       |  baixa           |
+|  relatorio_injecao.txt |  possivel_injecao |  234 |  54   |  baixa      |  revisao_humana  |
+|  relatorio_media.txt   |  None             |  228 |  64   |  None       |  alta            |
++------------------------+-------------------+------+-------+-------------+------------------+

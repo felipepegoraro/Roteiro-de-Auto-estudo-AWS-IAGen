@@ -1,0 +1,7 @@
+saida invalida do modelo: 'Claro! aqui vai'
+{"arquivo": "k.txt", "tokens_in": 20, "tokens_out": 10, "modelo": "amazon.nova-micro-v1:0", "defesa": true, "resumo": "x", "urgencia": "media"}
+saida invalida do modelo: 'nada'
+saida invalida do modelo: '{"resumo": "x", "urgencia": "altissima"}'
+{"arquivo": "k.txt", "tokens_in": 20, "tokens_out": 10, "modelo": "amazon.nova-micro-v1:0", "defesa": true, "resumo": "", "urgencia": "revisao_humana", "motivo": "json_invalido"}
+{"arquivo": "k.txt", "tokens_in": 10, "tokens_out": 5, "modelo": "amazon.nova-micro-v1:0", "defesa": true, "resumo": "x", "urgencia": "revisao_humana", "motivo": "possivel_injecao", "urgencia_modelo": "baixa"}
+ok: 3 casos passaram

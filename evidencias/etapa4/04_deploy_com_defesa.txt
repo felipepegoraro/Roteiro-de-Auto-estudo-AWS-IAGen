@@ -1,0 +1,4 @@
+{
+    "BucketRegion": "us-east-1"
+}
+ok: envie com  aws s3 cp etapa4/relatorios/relatorio_alta.txt s3://relatorios-campo/  e veja com  aws dynamodb scan --table-name triagem
