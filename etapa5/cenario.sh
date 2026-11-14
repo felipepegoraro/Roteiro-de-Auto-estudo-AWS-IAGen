@@ -31,20 +31,22 @@ aws cloudwatch put-metric-alarm --alarm-name cpu-alta-asg-campo --namespace AWS/
   --threshold 80 --comparison-operator GreaterThanThreshold --alarm-actions "$TOPICO_ARN"
 
 # 4) Incidente simulado: CPU sobe de 30% a 95% nos últimos 10 minutos (o Floci não gera métrica de EC2 sozinho)
-# Só publica se não houver pontos recentes: republicar sobrepõe minutos e dilui a média (visto na 1ª execução)
-recentes=$(aws cloudwatch get-metric-statistics --namespace AWS/EC2 --metric-name CPUUtilization \
+# Republicar a série inteira sobrepõe minutos e dilui a média (1ª execução); não publicar deixa o alarme sem
+# dados recentes (INSUFFICIENT_DATA). Então: sem pontos nos últimos 10 min -> série nova; senão -> o incidente
+# continua, com 95% só nos minutos DEPOIS do último ponto (sem sobreposição).
+pub() { aws cloudwatch put-metric-data --namespace AWS/EC2 --metric-name CPUUtilization --unit Percent \
+          --dimensions AutoScalingGroupName=$ASG --value "$1" --timestamp "$(date -u -d "-$2 min" +%FT%H:%M:00Z)"; }
+ultimo=$(aws cloudwatch get-metric-statistics --namespace AWS/EC2 --metric-name CPUUtilization \
   --dimensions Name=AutoScalingGroupName,Value=$ASG --start-time "$(date -u -d '-10 min' +%FT%TZ)" \
-  --end-time "$(date -u +%FT%TZ)" --period 60 --statistics Average --query 'length(Datapoints)')
-if [ "$recentes" = "0" ]; then
+  --end-time "$(date -u +%FT%TZ)" --period 60 --statistics Average \
+  --query 'max_by(Datapoints, &Timestamp).Timestamp' --output text)
+if [ "$ultimo" = "None" ] || [ -z "$ultimo" ]; then
   i=9
-  for cpu in 30 35 42 50 61 70 79 86 91 95; do
-    ts=$(date -u -d "-$i min" +%Y-%m-%dT%H:%M:%SZ)
-    aws cloudwatch put-metric-data --namespace AWS/EC2 --metric-name CPUUtilization --unit Percent \
-      --dimensions AutoScalingGroupName=$ASG --value $cpu --timestamp "$ts"
-    i=$((i - 1))
-  done
+  for cpu in 30 35 42 50 61 70 79 86 91 95; do pub $cpu $i; i=$((i - 1)); done
 else
-  echo "métricas recentes já existem ($recentes pontos): incidente não republicado (aguarde 10 min para um novo)"
+  atraso=$(( ($(date -u +%s) - $(date -u -d "$ultimo" +%s)) / 60 ))
+  for ((i = atraso - 1; i >= 0; i--)); do pub 95 $i; done
+  echo "incidente em andamento: +$atraso minuto(s) a 95% depois do último ponto ($ultimo)"
 fi
 
 # 5) Log group de auditoria + usuário próprio do agente (menor privilégio)
