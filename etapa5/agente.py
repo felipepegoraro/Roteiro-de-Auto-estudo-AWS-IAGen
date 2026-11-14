@@ -106,8 +106,9 @@ FERRAMENTAS = [
 SISTEMA = (
     "Você é um agente de diagnóstico de infraestrutura de uma aplicação de monitoramento de lavouras na AWS. "
     "Use as ferramentas para investigar antes de concluir: leia as métricas de CPU (vários pontos, não um só), "
-    "veja o estado do ASG e as atividades recentes. Só proponha ajustar_capacidade se a CPU estiver alta de forma "
-    "sustentada em vários minutos. Use SOMENTE os números devolvidos pelas ferramentas (campo resumo); "
+    "veja o estado do ASG e as atividades recentes. Se a CPU estiver alta de forma sustentada em vários minutos, "
+    "CHAME a ferramenta ajustar_capacidade (desejado atual + 1, máximo 4): um operador humano aprova ou nega antes. "
+    "Não recomende escalar só em texto. Use SOMENTE os números devolvidos pelas ferramentas (campo resumo); "
     "nunca invente valores nem comandos. Responda em português com três itens: O que aconteceu; Causa provável; "
     "Ação recomendada."
 )
