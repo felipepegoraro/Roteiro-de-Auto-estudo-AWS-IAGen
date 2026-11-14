@@ -45,7 +45,18 @@ def ler_metricas(nome_asg=ASG_PERMITIDO, minutos=15):
     if not pontos:  # 1ª execução: o modelo passou o nome do ALARME como ASG e concluiu sem dados
         return {"quantidade_de_pontos": 0,
                 "erro": f"sem métricas para '{nome_asg}'. O grupo de Auto Scaling se chama '{ASG_PERMITIDO}'."}
-    return {"quantidade_de_pontos": len(pontos),
+    # 2ª execução: o modelo de 1B recebeu os 13 pontos e mesmo assim inventou valores; os fatos agora vêm calculados
+    medias = [p["Average"] for p in pontos]
+    seguidos = 0
+    for v in reversed(medias):
+        if v <= 80:
+            break
+        seguidos += 1
+    resumo = (f"CPU subiu de {medias[0]:.0f}% para {medias[-1]:.0f}% (máximo {max(medias):.0f}%). "
+              f"Últimos {seguidos} minutos seguidos acima de 80%: "
+              + ("pico SUSTENTADO, justifica aumentar a capacidade." if seguidos >= 3 else
+                 "pico NÃO sustentado, não justifica escalar ainda."))
+    return {"resumo": resumo, "quantidade_de_pontos": len(pontos),
             "pontos": [{"hora": p["Timestamp"].strftime("%H:%M"), "media": round(p["Average"], 1),
                         "maximo": round(p["Maximum"], 1)} for p in pontos]}
 
@@ -96,7 +107,8 @@ SISTEMA = (
     "Você é um agente de diagnóstico de infraestrutura de uma aplicação de monitoramento de lavouras na AWS. "
     "Use as ferramentas para investigar antes de concluir: leia as métricas de CPU (vários pontos, não um só), "
     "veja o estado do ASG e as atividades recentes. Só proponha ajustar_capacidade se a CPU estiver alta de forma "
-    "sustentada em vários minutos. Responda em português com três itens: O que aconteceu; Causa provável; "
+    "sustentada em vários minutos. Use SOMENTE os números devolvidos pelas ferramentas (campo resumo); "
+    "nunca invente valores nem comandos. Responda em português com três itens: O que aconteceu; Causa provável; "
     "Ação recomendada."
 )
 
