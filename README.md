@@ -83,6 +83,7 @@ aws logs tail /agente/diagnostico      # auditoria de cada chamada de ferramenta
 - Estado em memória por padrão: sem `FLOCI_STORAGE_MODE=persistent`, tudo some no restart.
 - IAM não avalia o **recurso** em chamadas de `autoscaling` e de `logs`: só `Resource: "*"` funciona. O `cenario.sh` alarga só esses dois Sids no Floci; `etapa5/politica_iam.json` tem os ARNs da AWS real.
 - Tool use em CPU com modelo de 1B leva 30–40 s por chamada: timeouts aumentados (proxy 300 s, boto3 300 s).
+- Nenhum modelo local testado (llama3.2:1b, qwen2.5:1.5b, qwen2.5:3b) chamou a ferramenta de escrita: quando a CPU está sustentada e o modelo recomenda escalar em texto, o agente formaliza a proposta, que passa pela aprovação `[s/N]`. Teste do laço: `.venv/bin/python etapa5/test_agente.py`.
 
 ## Na AWS real
 

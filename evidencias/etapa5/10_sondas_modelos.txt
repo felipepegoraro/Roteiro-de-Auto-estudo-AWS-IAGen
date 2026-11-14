@@ -1,0 +1,7 @@
+# Sonda: histórico com ler_metricas já respondido ("pico SUSTENTADO, justifica aumentar a capacidade"),
+# 4 ferramentas disponíveis, temperatura 0. Pergunta: o modelo chama ajustar_capacidade?
+llama3.2:1b  (via Floci, pergunta padrão)                         -> end_turn, só texto
+llama3.2:1b  (via Floci, "chame ajustar_capacidade ... capacidade 2") -> end_turn, só texto
+qwen2.5:1.5b (direto no Ollama /v1/chat/completions)               -> finish_reason=stop, tool_calls=None, 53,6 s
+qwen2.5:3b   (direto no Ollama /v1/chat/completions)               -> finish_reason=stop, tool_calls=None, 96,4 s
+Conclusão: nenhum modelo local testado emitiu a chamada de escrita; todos recomendaram escalar só em texto.

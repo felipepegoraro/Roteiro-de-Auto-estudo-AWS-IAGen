@@ -3,6 +3,7 @@ Usa as credenciais do usuário IAM próprio (agente-diagnostico), nunca as do pe
 Uso: python3 etapa5/agente.py ["pergunta"]"""
 import json
 import os
+import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -56,7 +57,7 @@ def ler_metricas(nome_asg=ASG_PERMITIDO, minutos=15):
               f"Últimos {seguidos} minutos seguidos acima de 80%: "
               + ("pico SUSTENTADO, justifica aumentar a capacidade." if seguidos >= 3 else
                  "pico NÃO sustentado, não justifica escalar ainda."))
-    return {"resumo": resumo, "quantidade_de_pontos": len(pontos),
+    return {"resumo": resumo, "sustentado": seguidos >= 3, "quantidade_de_pontos": len(pontos),
             "pontos": [{"hora": p["Timestamp"].strftime("%H:%M"), "media": round(p["Average"], 1),
                         "maximo": round(p["Maximum"], 1)} for p in pontos]}
 
@@ -114,6 +115,15 @@ SISTEMA = (
 )
 
 
+def aprovar(entrada):
+    """Aprovação humana no terminal; sem terminal interativo, nega."""
+    try:
+        return input(f"Aprovar ajustar_capacidade {entrada}? [s/N] ").strip().lower() == "s"
+    except EOFError:
+        print("(sem terminal interativo: ação negada)")
+        return False
+
+
 def executar(nome, entrada):
     if nome not in FUNCOES:
         return {"erro": f"ferramenta desconhecida: {nome}"}
@@ -135,6 +145,7 @@ def main():
     log({"evento": "inicio", "pergunta": pergunta, "identidade": conta["Arn"]})
 
     pontos_lidos = 0  # guarda: sem métricas reais, o diagnóstico não é aceito
+    sustentado = ajuste_pedido = False
     for iteracao in range(1, MAX_ITERACOES + 1):
         resp = bedrock.converse(modelId=MODELO, system=[{"text": SISTEMA}], messages=msgs,
                                 toolConfig={"tools": FERRAMENTAS}, inferenceConfig={"temperature": 0, "maxTokens": 400})
@@ -151,6 +162,18 @@ def main():
             texto = "\n".join(b["text"] for b in msg["content"] if "text" in b)
             print(f"\n=== Diagnóstico (iteração {iteracao}) ===\n{texto}")
             log({"evento": "fim", "iteracao": iteracao, "resposta": texto})
+            # Nos testes, nenhum modelo local (llama3.2:1b, qwen2.5:1.5b/3b) chamou ajustar_capacidade: só recomendou
+            # em texto. Se o fato calculado é "sustentado" e o texto recomenda escalar, o CÓDIGO formaliza a proposta,
+            # que passa pela mesma aprovação humana, trava, IAM e log.
+            if sustentado and not ajuste_pedido and re.search(r"aument|escal|capacidade", texto, re.I):
+                atual = descrever_asg().get("desejado", CAP_MAX)
+                if atual < CAP_MAX:
+                    proposta = {"nome_asg": ASG_PERMITIDO, "capacidade": atual + 1}
+                    print(f"\n[proposta formalizada pelo código: CPU sustentada + recomendação do modelo] {proposta}")
+                    aprovado = aprovar(proposta)
+                    resultado = executar("ajustar_capacidade", proposta) if aprovado else {"erro": "ação negada pelo operador"}
+                    print(f"  resultado: {resultado}")
+                    log({"evento": "proposta_codigo", "entrada": proposta, "aprovado": aprovado, "resultado": resultado})
             return
         resultados = []
         for bloco in msg["content"]:
@@ -160,16 +183,14 @@ def main():
             nome, entrada, aprovado = uso["name"], uso.get("input") or {}, None
             print(f"\n[iteração {iteracao}] modelo pediu {nome}({entrada})")
             if nome == "ajustar_capacidade":
-                try:
-                    aprovado = input(f"Aprovar ajustar_capacidade {entrada}? [s/N] ").strip().lower() == "s"
-                except EOFError:  # sem terminal interativo: nega por padrão
-                    aprovado = False
-                    print("(sem terminal interativo: ação negada)")
+                ajuste_pedido = True
+                aprovado = aprovar(entrada)
                 resultado = executar(nome, entrada) if aprovado else {"erro": "ação negada pelo operador"}
             else:
                 resultado = executar(nome, entrada)
                 if nome == "ler_metricas":
                     pontos_lidos = max(pontos_lidos, resultado.get("quantidade_de_pontos", 0))
+                    sustentado = sustentado or resultado.get("sustentado", False)
             log({"evento": "ferramenta", "iteracao": iteracao, "ferramenta": nome, "entrada": entrada,
                  "aprovado": aprovado, "resultado": resultado})
             resultados.append({"toolResult": {"toolUseId": uso["toolUseId"], "content": [{"json": resultado}]}})
