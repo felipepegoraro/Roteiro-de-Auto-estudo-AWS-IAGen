@@ -9,7 +9,7 @@ conta=$(aws sts get-caller-identity --query Account --output text)
 [ "$conta" = "000000000000" ] || { echo "PARE: conta $conta não é o Floci"; exit 1; }
 
 # recursos de partida (quadro do roteiro)
-for b in relatorios imagens-drone; do aws s3api head-bucket --bucket $b 2>/dev/null || aws s3 mb s3://$b; done
+for b in relatorios imagens-drone; do aws s3api head-bucket --bucket $b >/dev/null 2>&1 || aws s3 mb s3://$b; done
 echo "Inspeção talhão 12: sem pragas" | aws s3 cp - s3://relatorios/inspecao-001.txt
 aws dynamodb describe-table --table-name sensores >/dev/null 2>&1 || aws dynamodb create-table --table-name sensores \
   --attribute-definitions AttributeName=id,AttributeType=S --key-schema AttributeName=id,KeyType=HASH \

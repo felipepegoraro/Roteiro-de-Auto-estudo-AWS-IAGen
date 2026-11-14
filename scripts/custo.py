@@ -21,7 +21,7 @@ def medias_tokens():
     sessao = boto3.Session(profile_name=os.environ.get("AWS_PROFILE", "floci"))
     conta = sessao.client("sts").get_caller_identity()["Account"]
     assert conta == "000000000000", f"PARE: conta {conta} não é o Floci"
-    itens = sessao.resource("dynamodb").Table("triagem").scan()["Items"]  # ponytail: 1 página basta p/ poucos itens
+    itens = sessao.resource("dynamodb").Table("triagem").scan()["Items"]  # obs: 1 página basta p/ poucos itens
     assert itens, "tabela triagem vazia: rode a Etapa 4 antes"
     t_in = sum(int(i["tokens_in"]) for i in itens) / len(itens)
     t_out = sum(int(i["tokens_out"]) for i in itens) / len(itens)

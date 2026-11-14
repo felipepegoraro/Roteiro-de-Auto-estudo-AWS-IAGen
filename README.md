@@ -4,7 +4,16 @@ Grupo: **Felipe Pegoraro, Thiago Siena, Pedro Borges**
 
 Tema do projeto integrador: agronegócio (triagem de relatórios de inspeção de lavoura + agente de diagnóstico de Auto Scaling).
 
-## Subir o ambiente
+## Tudo do zero em 2 comandos
+
+```bash
+docker compose up -d
+./deploy.sh        # idempotente: modelo, venv, Etapas 2, 4 e 5 (IAM ligado)
+```
+
+Documentos: `docs/arquitetura.md` (diagrama), `docs/relatorio_etapa6.md` (custo, riscos, recomendação), `docs/apresentacao.md`, `DIARIO_DE_PROMPTS.md`, `iac/problemas.md`.
+
+## Subir o ambiente (passo a passo)
 
 ```bash
 docker compose up -d

@@ -11,7 +11,7 @@ conta=$(aws sts get-caller-identity --query Account --output text)
 BUCKET=relatorios-campo TABELA=triagem FUNCAO=triagem ROLE=triagem-lambda
 ARN_FUNCAO=arn:aws:lambda:us-east-1:000000000000:function:$FUNCAO
 
-aws s3api head-bucket --bucket $BUCKET 2>/dev/null || aws s3 mb s3://$BUCKET
+aws s3api head-bucket --bucket $BUCKET >/dev/null 2>&1 || aws s3 mb s3://$BUCKET
 
 aws dynamodb describe-table --table-name $TABELA >/dev/null 2>&1 || aws dynamodb create-table --table-name $TABELA \
   --attribute-definitions AttributeName=arquivo,AttributeType=S \
