@@ -1,0 +1,11 @@
+Itens medidos: 4 | média por relatório: 228.2 tokens de entrada, 49.8 de saída
+Volume: 500 relatórios/dia = 15000 por mês
+
+| Modelo | US$/relatório | US$/mês | Equilíbrio com EC2 GPU (relatórios/dia) |
+|---|---:|---:|---:|
+| Amazon Nova Micro | 0.0000150 | 0.22 | 855,928 |
+| Amazon Nova Lite | 0.0000256 | 0.38 | 499,291 |
+| Claude Haiku 4.5 | 0.0004770 | 7.15 | 26,833 |
+| Claude Sonnet 4.5 | 0.0014310 | 21.46 | 8,944 |
+| EC2 g4dn.xlarge 24 h (modelo local) | - | 383.98 | - |
+| Regras fixas por palavra-chave (sem IA) | ~0 | ~0 (só Lambda/DynamoDB, comuns a todas) | - |

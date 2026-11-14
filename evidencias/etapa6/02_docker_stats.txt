@@ -1,0 +1,21 @@
+== Ollama em repouso
+NAME                                        CPU %     MEM USAGE / LIMIT
+roteiro-de-auto-estudo-aws-iagen-ollama-1   0.00%     1.64GiB / 15.31GiB
+== Durante inferência (relatório alto via converse, amostras ~1 s)
+roteiro-de-auto-estudo-aws-iagen-ollama-1	171.93%	1.649GiB / 15.31GiB
+roteiro-de-auto-estudo-aws-iagen-ollama-1	205.45%	1.649GiB / 15.31GiB
+roteiro-de-auto-estudo-aws-iagen-ollama-1	204.96%	1.649GiB / 15.31GiB
+roteiro-de-auto-estudo-aws-iagen-ollama-1	204.56%	1.649GiB / 15.31GiB
+roteiro-de-auto-estudo-aws-iagen-ollama-1	187.16%	1.649GiB / 15.31GiB
+{
+    "uso": {
+        "inputTokens": 152,
+        "outputTokens": 66,
+        "totalTokens": 218
+    },
+    "ms": 8714
+}
+tempo_total=9.51s
+== Modelo carregado
+NAME           ID              SIZE      PROCESSOR    CONTEXT    RUNNER      UNTIL              
+llama3.2:1b    baf6a787fdff    1.5 GB    100% CPU     4096       llamacpp    4 minutes from now    
