@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lab 2 por IaC - VPC publica/privada, web t3.micro, S3 e DynamoDB (genai-agro)
+
+Parameters:
+  AmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - { Key: Name, Value: vpc-genai-agro }
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  Igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  IgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref Igw
+
+  SubnetPublica:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+        - { Key: Name, Value: publica }
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  SubnetPrivada:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: us-east-1a
+      Tags:
+        - { Key: Name, Value: privada }
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  RotaPublica:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  RotaInternet:
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttach
+    Properties:
+      RouteTableId: !Ref RotaPublica
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Igw
+
+  AssocPublica:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublica
+      RouteTableId: !Ref RotaPublica
+
+  SgWeb:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Somente HTTP
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0 }
+      Tags:
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  Web:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: !Ref AmiId
+      SubnetId: !Ref SubnetPublica
+      SecurityGroupIds: [!Ref SgWeb]
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          dnf install -y httpd
+          echo "<h1>genai-agro</h1>" > /var/www/html/index.html
+          systemctl enable --now httpd
+      Tags:
+        - { Key: Name, Value: web-genai-agro }
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub relatorios-campo-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      Tags:
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+  Tabela:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: triagem-iac
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: arquivo, AttributeType: S }
+      KeySchema:
+        - { AttributeName: arquivo, KeyType: HASH }
+      Tags:
+        - { Key: Projeto, Value: genai-agro }
+        - { Key: CentroDeCusto, Value: ag822 }
+
+Outputs:
+  IpPublicoWeb:
+    Value: !GetAtt Web.PublicIp
+  NomeBucket:
+    Value: !Ref Bucket
+  ArnTabela:
+    Value: !GetAtt Tabela.Arn

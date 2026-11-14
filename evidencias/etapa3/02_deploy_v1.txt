@@ -1,0 +1,23 @@
+$ aws cloudformation deploy --template-file iac/vpc_v1_gerado.yaml --stack-name lab-ia
+
+Waiting for changeset to be created..
+Waiting for stack create/update to complete
+Successfully created/updated stack - lab-ia
+rc=0
+[
+    "CREATE_COMPLETE",
+    [
+        {
+            "OutputKey": "IpPublicoWeb",
+            "OutputValue": "10.0.1.10"
+        },
+        {
+            "OutputKey": "NomeBucket",
+            "OutputValue": "relatorios-campo-000000000000"
+        },
+        {
+            "OutputKey": "ArnTabela",
+            "OutputValue": "arn:aws:dynamodb:us-east-1:000000000000:table/triagem-iac"
+        }
+    ]
+]

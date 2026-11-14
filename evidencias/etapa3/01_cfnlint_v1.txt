@@ -1,0 +1,9 @@
+$ cfn-lint iac/vpc_v1_gerado.yaml
+Installed 9 packages in 63ms
+W3010 Avoid hardcoding availability zones 'us-east-1a'
+iac/vpc_v1_gerado.yaml:39:7
+
+W3010 Avoid hardcoding availability zones 'us-east-1a'
+iac/vpc_v1_gerado.yaml:51:7
+
+rc=4

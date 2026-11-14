@@ -1,0 +1,27 @@
+# deploy de iac/vpc.yaml no stack lab-ia: "Successfully created/updated stack - lab-ia" (UPDATE_COMPLETE)
+$ aws cloudformation describe-stack-resources --stack-name lab-ia
+Vpc	CREATE_COMPLETE	vpc-1e398ad3
+Igw	CREATE_COMPLETE	igw-08b42565
+Bucket	CREATE_COMPLETE	relatorios-campo-000000000000
+Tabela	CREATE_COMPLETE	triagem-iac
+RotaPublica	CREATE_COMPLETE	rtb-8f77279a
+SgWeb	CREATE_COMPLETE	sg-a8e828b832f2515b6
+SubnetPrivada	CREATE_COMPLETE	subnet-110401b7
+SubnetPublica	CREATE_COMPLETE	subnet-6e4dbb33
+IgwAttach	CREATE_COMPLETE	igw|vpc-1e398ad3|igw-08b42565
+AssocPublica	CREATE_COMPLETE	rtbassoc-b8996a42
+Web	CREATE_COMPLETE	i-981f97bca4e337137
+RotaInternet	CREATE_COMPLETE	rtb-8f77279a|0.0.0.0/0
+RotaPrivada	CREATE_COMPLETE	rtb-ceda76ef
+AssocPrivada	CREATE_COMPLETE	rtbassoc-ca8853d0
+$ outputs
+UPDATE_COMPLETE
+IpPublicoWeb	10.0.1.10
+NomeBucket	relatorios-campo-000000000000
+ArnTabela	arn:aws:dynamodb:us-east-1:000000000000:table/triagem-iac
+$ rotas da sub-rede privada
+10.0.0.0/16	local
+$ aws ec2 describe-instances
+i-981f97bca4e337137	t3.micro	running	us-east-1a	/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+$ NAT gateways
+0

@@ -31,6 +31,7 @@ Variáveis do compose: `MODELO_LOCAL` (padrão `llama3.2:1b`) e `IAM_ENFORCEMENT
 |---|---|---|
 | 0 Ambiente | `docker-compose.yml`, `evidencias/etapa0/` | ok |
 | 4 S3 → Lambda → Bedrock → DynamoDB | `etapa4/`, `evidencias/etapa4/` | ok |
+| 3 IaC (CloudFormation) | `iac/`, `evidencias/etapa3/` | ok |
 | 5 Agente de diagnóstico | `etapa5/`, `evidencias/etapa5/` | ok (execução com aprovação: ver abaixo) |
 | 6 Custo, segurança, TI Verde | `scripts/custo.py`, `docs/relatorio_etapa6.md` | ok |
 
@@ -44,6 +45,17 @@ python3 etapa4/test_app.py                                  # teste local: JSON 
 ```
 
 Resultado medido (llama3.2:1b): baixa→`baixa`, alta→`alta`, injeção→`revisao_humana` (com defesa), média oscilou entre `baixa`/`alta` (limite do modelo de 1B).
+
+### Etapa 3
+
+```bash
+uvx cfn-lint iac/vpc.yaml
+aws cloudformation deploy --template-file iac/vpc.yaml --stack-name lab-ia
+aws cloudformation describe-stack-resources --stack-name lab-ia
+aws cloudformation delete-stack --stack-name lab-ia
+```
+
+Problemas encontrados no template gerado e correções: `iac/problemas.md`.
 
 ### Etapa 5
 

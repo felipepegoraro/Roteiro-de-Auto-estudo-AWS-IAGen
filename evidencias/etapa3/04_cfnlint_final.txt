@@ -1,0 +1,2 @@
+$ cfn-lint iac/vpc.yaml
+rc=0

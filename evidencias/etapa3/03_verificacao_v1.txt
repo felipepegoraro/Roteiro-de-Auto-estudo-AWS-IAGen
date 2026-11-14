@@ -1,0 +1,70 @@
+$ aws cloudformation describe-stack-resources --stack-name lab-ia
+Vpc	AWS::EC2::VPC	CREATE_COMPLETE	vpc-1e398ad3
+Igw	AWS::EC2::InternetGateway	CREATE_COMPLETE	igw-08b42565
+Bucket	AWS::S3::Bucket	CREATE_COMPLETE	relatorios-campo-000000000000
+Tabela	AWS::DynamoDB::Table	CREATE_COMPLETE	triagem-iac
+RotaPublica	AWS::EC2::RouteTable	CREATE_COMPLETE	rtb-8f77279a
+SgWeb	AWS::EC2::SecurityGroup	CREATE_COMPLETE	sg-a8e828b832f2515b6
+SubnetPrivada	AWS::EC2::Subnet	CREATE_COMPLETE	subnet-110401b7
+SubnetPublica	AWS::EC2::Subnet	CREATE_COMPLETE	subnet-6e4dbb33
+IgwAttach	AWS::EC2::VPCGatewayAttachment	CREATE_COMPLETE	igw|vpc-1e398ad3|igw-08b42565
+AssocPublica	AWS::EC2::SubnetRouteTableAssociation	CREATE_COMPLETE	rtbassoc-b8996a42
+Web	AWS::EC2::Instance	CREATE_COMPLETE	i-981f97bca4e337137
+RotaInternet	AWS::EC2::Route	CREATE_COMPLETE	rtb-8f77279a|0.0.0.0/0
+$ aws ec2 describe-instances (web)
+[
+    {
+        "id": "i-981f97bca4e337137",
+        "tipo": "t3.micro",
+        "ami": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64",
+        "estado": "running",
+        "ip_privado": "10.0.1.10",
+        "ip_publico": "10.0.1.10",
+        "subnet": "subnet-6e4dbb33",
+        "tags": [
+            {
+                "Key": "Name",
+                "Value": "web-genai-agro"
+            },
+            {
+                "Key": "Projeto",
+                "Value": "genai-agro"
+            },
+            {
+                "Key": "CentroDeCusto",
+                "Value": "ag822"
+            }
+        ]
+    }
+]
+$ aws ssm get-parameter /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+ami-0abcdef1234567891
+$ aws ec2 describe-route-tables (VPC do stack)
+[
+    {
+        "main": true,
+        "subnets": [],
+        "rotas": [
+            [
+                "10.0.0.0/16",
+                "local"
+            ]
+        ]
+    },
+    {
+        "main": false,
+        "subnets": [
+            "subnet-6e4dbb33"
+        ],
+        "rotas": [
+            [
+                "10.0.0.0/16",
+                "local"
+            ],
+            [
+                "0.0.0.0/0",
+                "igw-08b42565"
+            ]
+        ]
+    }
+]
