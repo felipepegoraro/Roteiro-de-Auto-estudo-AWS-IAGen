@@ -1,0 +1,21 @@
+# Usuário agente-diagnostico, IAM_ENFORCEMENT=true, política aplicada no Floci (SetDesiredCapacity com Resource *, ver cenario.sh)
+$ aws sts get-caller-identity
+arn:aws:iam::000000000000:user/agente-diagnostico
+$ aws autoscaling describe-auto-scaling-groups   (leitura: deve passar)
+asg-campo
+$ aws cloudwatch get-metric-statistics   (leitura: deve passar)
+14
+$ aws autoscaling set-desired-capacity asg-campo 1   (escrita permitida: deve passar)
+OK
+$ aws autoscaling update-auto-scaling-group asg-campo --max-size 10   (outra escrita: deve falhar)
+
+An error occurred (AccessDenied) when calling the UpdateAutoScalingGroup operation: User is not authorized to perform: autoscaling:UpdateAutoScalingGroup
+$ aws autoscaling delete-auto-scaling-group asg-campo   (destrutiva: deve falhar)
+
+An error occurred (AccessDenied) when calling the DeleteAutoScalingGroup operation: User is not authorized to perform: autoscaling:DeleteAutoScalingGroup
+$ aws s3 ls   (fora do escopo: deve falhar)
+
+An error occurred (AccessDenied) when calling the ListBuckets operation: User is not authorized to perform: s3:ListAllMyBuckets
+$ aws iam list-users   (fora do escopo: deve falhar)
+
+An error occurred (AccessDenied) when calling the ListUsers operation: User is not authorized to perform: iam:ListUsers

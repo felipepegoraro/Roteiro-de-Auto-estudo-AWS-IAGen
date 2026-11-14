@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "LeituraDiagnostico", "Effect": "Allow",
+     "Action": ["cloudwatch:GetMetricStatistics", "autoscaling:DescribeAutoScalingGroups", "autoscaling:DescribeScalingActivities"],
+     "Resource": "*"},
+    {"Sid": "EscalarSoAsgCampo", "Effect": "Allow", "Action": "autoscaling:SetDesiredCapacity",
+     "Resource": "arn:aws:autoscaling:us-east-1:000000000000:autoScalingGroup:*:autoScalingGroupName/asg-campo"},
+    {"Sid": "ChamarModelo", "Effect": "Allow", "Action": "bedrock:InvokeModel",
+     "Resource": "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0"},
+    {"Sid": "LogDeAuditoria", "Effect": "Allow", "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+     "Resource": "arn:aws:logs:us-east-1:000000000000:log-group:/agente/diagnostico:*"}
+  ]
+}

@@ -1,0 +1,4 @@
+# Logs de auditoria com o usuário do agente (política do Floci aplicada pelo cenario.sh)
+PutLogEvents em /agente/diagnostico: OK
+# limitações de recurso testadas no Floci para logs:PutLogEvents:
+log-group:/agente/diagnostico:* -> negado; ...:log-stream:* -> negado; arn:aws:logs:us-east-1:000000000000:* -> negado; * -> passou

@@ -1,0 +1,2 @@
+ok: cenário montado. Estado do alarme:
+INSUFFICIENT_DATA	Unchecked

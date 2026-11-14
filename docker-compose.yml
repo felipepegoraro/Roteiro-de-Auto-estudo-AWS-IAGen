@@ -6,10 +6,14 @@ services:
       FLOCI_HOSTNAME: floci
       FLOCI_SERVICES_BEDROCK_RUNTIME_BACKEND: proxy
       FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_URL: http://ollama:11434/v1
-      # ponytail: 1b porque a máquina tem < 8 GB livres; troque por llama3.2 se sobrar RAM
+      # o padrão estoura com tool use em CPU (visto na Etapa 5)
+      FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_REQUEST_TIMEOUT_SECONDS: 300
+      # 1b porque a máquina tem < 8 GB livres; MODELO_LOCAL=llama3.2 se sobrar RAM
       FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_DEFAULT_MODEL: ${MODELO_LOCAL:-llama3.2:1b}
       # Etapas 2 e 5: IAM_ENFORCEMENT=true docker compose up -d
       FLOCI_SERVICES_IAM_ENFORCEMENT_ENABLED: ${IAM_ENFORCEMENT:-false}
+      # padrão é memory: o estado some a cada restart
+      FLOCI_STORAGE_MODE: persistent
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock # necessário para o Lambda
@@ -17,6 +21,8 @@ services:
   ollama:
     image: ollama/ollama:latest
     ports: ["11434:11434"]
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
     volumes:
       - ollama:/root/.ollama
 volumes:

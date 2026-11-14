@@ -1,0 +1,2 @@
+stopReason tool_use latencyMs 31921 usage {'inputTokens': 584, 'outputTokens': 145, 'totalTokens': 729}
+[{"toolUse": {"toolUseId": "call_cu24m7bd", "name": "ler_metricas", "input": {"minutos": 60, "nome_asg": "asg-campo"}}}]

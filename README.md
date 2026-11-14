@@ -31,6 +31,8 @@ Variáveis do compose: `MODELO_LOCAL` (padrão `llama3.2:1b`) e `IAM_ENFORCEMENT
 |---|---|---|
 | 0 Ambiente | `docker-compose.yml`, `evidencias/etapa0/` | ok |
 | 4 S3 → Lambda → Bedrock → DynamoDB | `etapa4/`, `evidencias/etapa4/` | ok |
+| 5 Agente de diagnóstico | `etapa5/`, `evidencias/etapa5/` | ok (execução com aprovação: ver abaixo) |
+| 6 Custo, segurança, TI Verde | `scripts/custo.py`, `docs/relatorio_etapa6.md` | ok |
 
 ### Etapa 4 em 3 comandos
 
@@ -43,7 +45,24 @@ python3 etapa4/test_app.py                                  # teste local: JSON 
 
 Resultado medido (llama3.2:1b): baixa→`baixa`, alta→`alta`, injeção→`revisao_humana` (com defesa), média oscilou entre `baixa`/`alta` (limite do modelo de 1B).
 
+### Etapa 5
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # boto3 com Converse (>= 1.35)
+IAM_ENFORCEMENT=true docker compose up -d
+./etapa5/cenario.sh                    # ASG, CPU 30→95%, alarme → SNS → SQS, usuário IAM do agente
+.venv/bin/python etapa5/agente.py      # pede aprovação [s/N] antes de ajustar_capacidade
+aws logs tail /agente/diagnostico      # auditoria de cada chamada de ferramenta
+```
+
+### Limitações do Floci encontradas
+
+- Estado em memória por padrão: sem `FLOCI_STORAGE_MODE=persistent`, tudo some no restart.
+- IAM não avalia o **recurso** em chamadas de `autoscaling` e de `logs`: só `Resource: "*"` funciona. O `cenario.sh` alarga só esses dois Sids no Floci; `etapa5/politica_iam.json` tem os ARNs da AWS real.
+- Tool use em CPU com modelo de 1B leva 30–40 s por chamada: timeouts aumentados (proxy 300 s, boto3 300 s).
+
 ## Na AWS real
 
 - Sem `endpoint_url`: o perfil aponta para a conta real e cada token do Bedrock é cobrado.
+- Etapa 5: a política do agente usa os ARNs de `politica_iam.json` sem alteração, as métricas de CPU vêm do EC2 automaticamente e o CloudTrail registra cada `SetDesiredCapacity` com a identidade de quem chamou.
 - Etapa 4: o mesmo `app.py` roda sem mudança; muda o `modelId` (modelo habilitado na conta) e a role passa a ser avaliada de verdade (`politica_lambda.json` já restringe `bedrock:InvokeModel` ao modelo).
