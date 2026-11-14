@@ -3,7 +3,6 @@ Usa as credenciais do usuário IAM próprio (agente-diagnostico), nunca as do pe
 Uso: python3 etapa5/agente.py ["pergunta"]"""
 import json
 import os
-import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -162,14 +161,15 @@ def main():
             texto = "\n".join(b["text"] for b in msg["content"] if "text" in b)
             print(f"\n=== Diagnóstico (iteração {iteracao}) ===\n{texto}")
             log({"evento": "fim", "iteracao": iteracao, "resposta": texto})
-            # Nos testes, nenhum modelo local (llama3.2:1b, qwen2.5:1.5b/3b) chamou ajustar_capacidade: só recomendou
-            # em texto. Se o fato calculado é "sustentado" e o texto recomenda escalar, o CÓDIGO formaliza a proposta,
-            # que passa pela mesma aprovação humana, trava, IAM e log.
-            if sustentado and not ajuste_pedido and re.search(r"aument|escal|capacidade", texto, re.I):
+            # Nos testes, nenhum modelo local (llama3.2:1b, qwen2.5:1.5b/3b) chamou ajustar_capacidade. Se o fato
+            # CALCULADO é "sustentado", o código propõe +1, com a mesma aprovação humana, trava, IAM e log.
+            # Não lemos o texto do modelo: a 1ª versão procurava "capacidade" no texto e propôs AUMENTAR quando o
+            # modelo tinha escrito "reduzir a capacidade" (execuções 5 e 6). A decisão final é do operador.
+            if sustentado and not ajuste_pedido:
                 atual = descrever_asg().get("desejado", CAP_MAX)
                 if atual < CAP_MAX:
                     proposta = {"nome_asg": ASG_PERMITIDO, "capacidade": atual + 1}
-                    print(f"\n[proposta formalizada pelo código: CPU sustentada + recomendação do modelo] {proposta}")
+                    print(f"\n[proposta do CÓDIGO (não do modelo): CPU acima de 80% de forma sustentada pelo cálculo] {proposta}")
                     aprovado = aprovar(proposta)
                     resultado = executar("ajustar_capacidade", proposta) if aprovado else {"erro": "ação negada pelo operador"}
                     print(f"  resultado: {resultado}")

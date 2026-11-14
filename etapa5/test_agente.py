@@ -62,11 +62,12 @@ assert e["set"] == [], e
 e = preparar([texto("CPU alta, escale"), LER, texto("CPU estável")], [], [40, 41, 42, 43])
 a.main()
 assert any("diagnostico_recusado" in m for m in e["logs"]) and e["set"] == [], e
-# 5) só texto recomendando aumentar + CPU sustentada -> proposta do código, aprovada -> set(2)
-e = preparar([LER, texto("Ação recomendada: aumentar a capacidade.")], ["s"], ALTA)
+# 5) modelo não chama a ferramenta (aqui até recomenda REDUZIR, como nas execuções 5 e 6) + CPU sustentada
+#    -> proposta do código (+1) baseada só no cálculo; operador aprova -> set(2)
+e = preparar([LER, texto("Ação recomendada: reduzir a capacidade.")], ["s"], ALTA)
 a.main()
 assert e["set"] == [2] and any("proposta_codigo" in m for m in e["logs"]), e
-# 6) mesma recomendação, CPU NÃO sustentada -> sem proposta
+# 6) modelo recomenda aumentar, mas CPU NÃO sustentada (um pico isolado) -> sem proposta
 e = preparar([LER, texto("Ação recomendada: aumentar a capacidade.")], [], [30, 95, 40, 50])
 a.main()
 assert e["set"] == [] and not any("proposta_codigo" in m for m in e["logs"]), e
