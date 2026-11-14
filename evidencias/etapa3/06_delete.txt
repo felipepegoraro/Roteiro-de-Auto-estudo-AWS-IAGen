@@ -1,0 +1,10 @@
+$ aws cloudformation delete-stack --stack-name lab-ia
+wait rc=0
+$ aws cloudformation describe-stacks --stack-name lab-ia
+An error occurred (ValidationError) when calling the DescribeStacks operation: Stack with id lab-ia does not exist
+$ verificação
+An error occurred (InvalidVpcID.NotFound) when calling the DescribeVpcs operation: The vpc ID 'vpc-1e398ad3' does not exist
+TABLENAMES	triagem
+2026-11-14 12:27:27 relatorios-campo
+2026-11-14 12:27:32 awslambda-us-east-1-tasks
+terminated
