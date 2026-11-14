@@ -1,0 +1,15 @@
+make_bucket: relatorios
+make_bucket: imagens-drone
+== identidade:
+arn:aws:iam::000000000000:user/tecnico-campo
+== get-object relatorios/inspecao-001.txt (deve PASSAR):
+Inspeção talhão 12: sem pragas
+34
+PASSOU
+== put-object relatorios/invasor.txt (deve FALHAR):
+upload failed: - to s3://relatorios/invasor.txt An error occurred (AccessDenied) when calling the PutObject operation: User is not authorized to perform: s3:PutObject
+FALHOU como esperado
+== listar imagens-drone (fora do escopo, deve FALHAR):
+
+An error occurred (AccessDenied) when calling the ListObjectsV2 operation: User is not authorized to perform: s3:ListBucket
+FALHOU como esperado

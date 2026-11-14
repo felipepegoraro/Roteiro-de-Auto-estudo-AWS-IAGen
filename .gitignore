@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 Roteiro*.docx
 etapa5/.credenciais_agente.json
+scripts/.credenciais_tecnico.json

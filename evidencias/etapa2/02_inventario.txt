@@ -1,0 +1,11 @@
+Buckets S3:
+  - relatorios-campo
+  - relatorios
+  - imagens-drone
+  - awslambda-us-east-1-tasks
+Tabelas DynamoDB:
+  - sensores
+  - triagem
+Usuários IAM:
+  - agente-diagnostico
+  - tecnico-campo
