@@ -31,13 +31,21 @@ aws cloudwatch put-metric-alarm --alarm-name cpu-alta-asg-campo --namespace AWS/
   --threshold 80 --comparison-operator GreaterThanThreshold --alarm-actions "$TOPICO_ARN"
 
 # 4) Incidente simulado: CPU sobe de 30% a 95% nos últimos 10 minutos (o Floci não gera métrica de EC2 sozinho)
-i=9
-for cpu in 30 35 42 50 61 70 79 86 91 95; do
-  ts=$(date -u -d "-$i min" +%Y-%m-%dT%H:%M:%SZ)
-  aws cloudwatch put-metric-data --namespace AWS/EC2 --metric-name CPUUtilization --unit Percent \
-    --dimensions AutoScalingGroupName=$ASG --value $cpu --timestamp "$ts"
-  i=$((i - 1))
-done
+# Só publica se não houver pontos recentes: republicar sobrepõe minutos e dilui a média (visto na 1ª execução)
+recentes=$(aws cloudwatch get-metric-statistics --namespace AWS/EC2 --metric-name CPUUtilization \
+  --dimensions Name=AutoScalingGroupName,Value=$ASG --start-time "$(date -u -d '-10 min' +%FT%TZ)" \
+  --end-time "$(date -u +%FT%TZ)" --period 60 --statistics Average --query 'length(Datapoints)')
+if [ "$recentes" = "0" ]; then
+  i=9
+  for cpu in 30 35 42 50 61 70 79 86 91 95; do
+    ts=$(date -u -d "-$i min" +%Y-%m-%dT%H:%M:%SZ)
+    aws cloudwatch put-metric-data --namespace AWS/EC2 --metric-name CPUUtilization --unit Percent \
+      --dimensions AutoScalingGroupName=$ASG --value $cpu --timestamp "$ts"
+    i=$((i - 1))
+  done
+else
+  echo "métricas recentes já existem ($recentes pontos): incidente não republicado (aguarde 10 min para um novo)"
+fi
 
 # 5) Log group de auditoria + usuário próprio do agente (menor privilégio)
 aws logs create-log-group --log-group-name $LOGS 2>/dev/null || true
@@ -58,5 +66,9 @@ rm -f "$TMP_POL"
 # credencial do agente fica fora do git (.gitignore); no Floci é fictícia, mas o hábito é o que vale
 [ -s .credenciais_agente.json ] || aws iam create-access-key --user-name $USUARIO --query AccessKey > .credenciais_agente.json
 
+for _ in $(seq 1 12); do  # o alarme é avaliado periodicamente; espera até ~60 s
+  [ "$(aws cloudwatch describe-alarms --alarm-names cpu-alta-asg-campo --query 'MetricAlarms[0].StateValue' --output text)" = ALARM ] && break
+  sleep 5
+done
 echo "ok: cenário montado. Estado do alarme:"
 aws cloudwatch describe-alarms --alarm-names cpu-alta-asg-campo --query 'MetricAlarms[0].[StateValue,StateReason]' --output text

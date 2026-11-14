@@ -1,0 +1,11 @@
+# 1ª execução do agente (rodada por Felipe Pegoraro no terminal), 14/11/2026 ~12:56
+# Log completo no CloudWatch Logs: /agente/diagnostico / execucao-20261114-125621 (cópia em 06_execucao1_log.json)
+Estado do alarme ao fim do cenario.sh: OK  "Threshold Not Crossed: 1 datapoint(s) breaching the threshold."
+[iteração 1] modelo pediu ler_metricas({'minutos': 60, 'nome_asg': 'cpu-alta-asg-campo'})   <- nome do ALARME, não do ASG
+  resultado: {"quantidade_de_pontos": 0, "pontos": []}
+=== Diagnóstico (iteração 2) ===  <- concluiu sem nenhum dado
+  "A métrica CPU indica que o nível de CPU está acima do nível de expectativa"
+  "grupo ASG (Application Load Balancer)"                                   <- conceito errado
+  boto3.client('asg').modify_asg(GroupName=..., CapacityIncrease=True)      <- API inexistente (alucinação)
+  Ação recomendada: aumentar a capacidade (sem ter lido métrica nenhuma)
+Nenhum ajustar_capacidade foi pedido, então não houve aprovação.

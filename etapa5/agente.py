@@ -42,6 +42,9 @@ def ler_metricas(nome_asg=ASG_PERMITIDO, minutos=15):
                                  StartTime=fim - timedelta(minutes=int(minutos)), EndTime=fim,
                                  Period=60, Statistics=["Average", "Maximum"])
     pontos = sorted(r["Datapoints"], key=lambda p: p["Timestamp"])
+    if not pontos:  # 1ª execução: o modelo passou o nome do ALARME como ASG e concluiu sem dados
+        return {"quantidade_de_pontos": 0,
+                "erro": f"sem métricas para '{nome_asg}'. O grupo de Auto Scaling se chama '{ASG_PERMITIDO}'."}
     return {"quantidade_de_pontos": len(pontos),
             "pontos": [{"hora": p["Timestamp"].strftime("%H:%M"), "media": round(p["Average"], 1),
                         "maximo": round(p["Maximum"], 1)} for p in pontos]}
@@ -113,16 +116,24 @@ def main():
     print(f"Identidade: {conta['Arn']}\nLog de auditoria: {LOG_GROUP} / {STREAM}\n")
     logs.create_log_stream(logGroupName=LOG_GROUP, logStreamName=STREAM)
     pergunta = sys.argv[1] if len(sys.argv) > 1 else (
-        "O alarme cpu-alta-asg-campo disparou para o grupo asg-campo. Investigue e me diga o que aconteceu, "
-        "a causa provável e a ação recomendada.")
+        "O alarme de CPU (nome do alarme: cpu-alta-asg-campo) disparou. O grupo de Auto Scaling se chama asg-campo. "
+        "Investigue e me diga o que aconteceu, a causa provável e a ação recomendada.")
     msgs = [{"role": "user", "content": [{"text": pergunta}]}]
     log({"evento": "inicio", "pergunta": pergunta, "identidade": conta["Arn"]})
 
+    pontos_lidos = 0  # guarda: sem métricas reais, o diagnóstico não é aceito
     for iteracao in range(1, MAX_ITERACOES + 1):
         resp = bedrock.converse(modelId=MODELO, system=[{"text": SISTEMA}], messages=msgs,
                                 toolConfig={"tools": FERRAMENTAS}, inferenceConfig={"temperature": 0, "maxTokens": 400})
         msg = resp["output"]["message"]
         msgs.append(msg)
+        if resp["stopReason"] != "tool_use" and pontos_lidos < 3 and iteracao < MAX_ITERACOES:
+            aviso = (f"Diagnóstico recusado: você ainda não leu métricas reais ({pontos_lidos} pontos). "
+                     f"Chame ler_metricas com nome_asg='{ASG_PERMITIDO}' antes de concluir.")
+            print(f"\n[iteração {iteracao}] {aviso}")
+            log({"evento": "diagnostico_recusado", "iteracao": iteracao, "pontos_lidos": pontos_lidos})
+            msgs.append({"role": "user", "content": [{"text": aviso}]})
+            continue
         if resp["stopReason"] != "tool_use":
             texto = "\n".join(b["text"] for b in msg["content"] if "text" in b)
             print(f"\n=== Diagnóstico (iteração {iteracao}) ===\n{texto}")
@@ -136,10 +147,16 @@ def main():
             nome, entrada, aprovado = uso["name"], uso.get("input") or {}, None
             print(f"\n[iteração {iteracao}] modelo pediu {nome}({entrada})")
             if nome == "ajustar_capacidade":
-                aprovado = input(f"Aprovar ajustar_capacidade {entrada}? [s/N] ").strip().lower() == "s"
+                try:
+                    aprovado = input(f"Aprovar ajustar_capacidade {entrada}? [s/N] ").strip().lower() == "s"
+                except EOFError:  # sem terminal interativo: nega por padrão
+                    aprovado = False
+                    print("(sem terminal interativo: ação negada)")
                 resultado = executar(nome, entrada) if aprovado else {"erro": "ação negada pelo operador"}
             else:
                 resultado = executar(nome, entrada)
+                if nome == "ler_metricas":
+                    pontos_lidos = max(pontos_lidos, resultado.get("quantidade_de_pontos", 0))
             log({"evento": "ferramenta", "iteracao": iteracao, "ferramenta": nome, "entrada": entrada,
                  "aprovado": aprovado, "resultado": resultado})
             resultados.append({"toolResult": {"toolUseId": uso["toolUseId"], "content": [{"json": resultado}]}})
