@@ -1,0 +1,22 @@
+Pergunta: Qual a diferença entre Security Group e Network ACL na AWS? Responda em português, em poucas linhas.
+Modelo: llama3.2:1b (Ollama local)
+Servidor MCP: awslabs.aws-documentation-mcp-server (stdio, via uvx)
+Ferramentas do servidor: read_documentation, read_sections, search_table, search_documentation, recommend
+Página lida pelo MCP: https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html (6057 caracteres)
+
+=== SEM MCP ===
+Uma diferença fundamental entre Security Group e Network ACL é a prioridade de tratamento.
+
+- Network ACL (Access Control List) prioriza os tráfego entre redes diferentes, mas não pode controlar tráfego entre redes próprias.
+- Security Group prioriza o tráfego entre redes próprias, mas não pode controlar tráfego entre redes diferentes.
+
+=== COM MCP ===
+A diferença entre Security Group e Network ACL na AWS é que:
+
+- A Security Group controla a entrada e saída de dados para e de fora de um subnetwork.
+- A Network ACL controla a saída de dados para e de fora de uma subnetwork.
+
+Em resumo, Security Group é uma política que define o tráfego de entrada e saída para e de fora de um subnetwork, enquanto Network ACL é uma política que definiça o tráfego de saída para e de fora de uma subnetwork.
+
+Resposta correta (documentação): Security Group fica na instância e é stateful (a resposta volta sozinha);
+Network ACL fica na sub-rede, é stateless e tem regras de permitir e negar, avaliadas em ordem.
