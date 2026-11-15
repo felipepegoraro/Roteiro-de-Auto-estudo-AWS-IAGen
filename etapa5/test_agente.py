@@ -1,13 +1,25 @@
 """Teste local do laço do agente: aprovação humana, trava de ASG, guarda sem métricas e proposta do código.
-Bedrock e AWS simulados (não chama o Floci). Precisa do .credenciais_agente.json do cenario.sh só para importar.
+Bedrock e AWS simulados (não chama o Floci). Roda sem o cenario.sh: se o .credenciais_agente.json não existe,
+cria um falso só para importar e apaga no fim.
 Rodar: .venv/bin/python etapa5/test_agente.py"""
 import builtins
+import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import agente as a  # noqa: E402
+AQUI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, AQUI)
+CRED = os.path.join(AQUI, ".credenciais_agente.json")
+CRED_FALSA = not os.path.exists(CRED)
+if CRED_FALSA:
+    with open(CRED, "w") as f:
+        json.dump({"AccessKeyId": "teste", "SecretAccessKey": "teste"}, f)
+try:
+    import agente as a  # noqa: E402
+finally:
+    if CRED_FALSA:
+        os.remove(CRED)
 
 
 class Fake:
