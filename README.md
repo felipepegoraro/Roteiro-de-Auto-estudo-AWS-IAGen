@@ -39,10 +39,10 @@ Variáveis do compose: `MODELO_LOCAL` (padrão `llama3.2:1b`) e `IAM_ENFORCEMENT
 | Etapa | Pasta | Status |
 |---|---|---|
 | 0 Ambiente | `docker-compose.yml`, `evidencias/etapa0/` | ok |
-| 4 S3 → Lambda → Bedrock → DynamoDB | `etapa4/`, `evidencias/etapa4/` | ok |
-| 1 Fundamentos (rascunho) | `docs/glossario.md`, `docs/mapa_servicos.md` | rascunho |
+| 1 Fundamentos | `docs/glossario.md`, `docs/mapa_servicos.md` | ok |
 | 2 Assistentes / menor privilégio | `scripts/etapa2.sh`, `scripts/inventario.py`, `evidencias/etapa2/` | ok |
 | 3 IaC (CloudFormation) | `iac/`, `evidencias/etapa3/` | ok |
+| 4 S3 → Lambda → Bedrock → DynamoDB | `etapa4/`, `evidencias/etapa4/` | ok |
 | 5 Agente de diagnóstico | `etapa5/`, `evidencias/etapa5/` | ok (execução com aprovação: ver abaixo) |
 | 6 Custo, segurança, TI Verde | `scripts/custo.py`, `docs/relatorio_etapa6.md` | ok |
 
